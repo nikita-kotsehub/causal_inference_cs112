@@ -49,6 +49,7 @@ set.seed(928)
 
 **Note**: *Don't change seed in the document. The function `set.seed()` has already been set at the beginning of this document to 928. Changing the see again to a different number will make your results not replicable.*
 
+## GitHub Repo with the code: [https://github.com/nikita-kotsehub/causal_inference_cs112](https://github.com/nikita-kotsehub/causal_inference_cs112)
 
 ## QUESTION 1: Data Generating Example
 
@@ -193,7 +194,7 @@ df_match <- Match(Y=df$Y, Tr=df$D, X=df$pscore, M=1)
 
 Check the balance of the covariates. Do you see any improvements after matching?
 
-As we can see from the output of bal.tab and the love plot, the difference in treatment and control groups for each covariate has decreases. However, looking at just the means is not sufficient because it does not tell us anything about the distribution. Hence, we can also look at bal.plot for variable V4: we can see a significant improvement after matching because the distributions look more similar and are centered at almost the same number.
+As we can see from the output of bal.tab and the love plot, the difference in treatment and control groups for each covariate has decreased. However, looking at just the means is not sufficient because it does not tell us anything about the distribution. Hence, we can also look at bal.plot for the variables: we can see a significant improvement after matching because the distributions look more similar and are centered at almost the same number.
 ```{r}
 # Your code here
 bal.tab(df_match, formula = (D ~ V1 + V2 + V3 + V4), data = df, distance = ~ lm1$fitted.values)
@@ -204,7 +205,12 @@ love.plot(x=df_match, formula = (D ~ V1 + V2 + V3 + V4), data = df,method = "wei
 ```
 ```{r}
 
-bal.plot(x=df_match, var.name = "V4", which="both", formula = (D ~ V1 + V2 + V3 + V4))
+b1<- bal.plot(x=df_match, var.name = "V1", which="both", formula = (D ~ V1 + V2 + V3 + V4))
+b2<-bal.plot(x=df_match, var.name = "V2", which="both", formula = (D ~ V1 + V2 + V3 + V4))
+b3<-bal.plot(x=df_match, var.name = "V3", which="both", formula = (D ~ V1 + V2 + V3 + V4))
+b4<-bal.plot(x=df_match, var.name = "V4", which="both", formula = (D ~ V1 + V2 + V3 + V4))
+
+grid.arrange(b1,b2,b3,b4,nrow=2)
 ```
 
 
@@ -212,7 +218,7 @@ bal.plot(x=df_match, var.name = "V4", which="both", formula = (D ~ V1 + V2 + V3 
 
 What is the treatment effect after matching? Is this surprising given your answer to Step 2. Is the treatment effect found in this Step closer to the treatment effect in Step 2 than the treatment effect before matching?
 
-Now, the treatment effect is much closer to the true treatment effect. We can see it by looking at the 95% CI, which almost includes the true treatment effect of 0.8.
+Now, the treatment effect is much closer to the true treatment effect. We can see it by looking at the 95% CI, which includes the true treatment effect of 0.8. This is not surprising because we had a good balance of covariates which mitigated the impact of self-selection bias. Without the bias, any different in outcome should be attributed to the treatment.
 
 ```{r}
 # Your code here
@@ -247,7 +253,6 @@ Before doing any matching, run a regression, with the outcome variable being `no
 
 Show the regression specification. Use the regression to estimate a treatment effect and confidence interval. Check the balance of this not-matched data set using any method of your choice (balance tables, balance plots, love plots, etc).
 
-We will look at the balance of variables after we match in the next steps.
 ```{r}
 # Your code here,
 lm2 <- lm(nowtot ~ hasgirls + dems + repubs + christian + age + srvlng + demvote, data=daughters)
@@ -260,6 +265,9 @@ uprb <- coefd + sed
 # Treatment effect - coefficient for the treatment variable hasgirls
 sprintf("The Treatment Effect for hasgirls is %f, with 95%% CI [%f, %f]", coefd, lwrb, uprb)
 
+```
+```{r}
+love.plot(cbind(daughters$hasgirls,daughters$dems,daughters$repubs,daughters$christian,daughters$age,daughters$srvlng,daughters$demvote), treat = daughters$hasgirls)
 ```
 
 
@@ -308,7 +316,14 @@ love.plot(x=m.out2, formula = (hasgirls ~ dems + repubs + christian + age + srvl
 ```
 ```{r}
 
-bal.plot(x=m.out2, data=daughters, var.name = "age", which="both", formula = (hasgirls ~ dems + repubs + christian + age + srvlng + demvote))
+pl1<- bal.plot(x=m.out2, data=daughters, var.name = "age", which="both", formula = (hasgirls ~ dems + repubs + christian + age + srvlng + demvote))
+pl2<-bal.plot(x=m.out2, data=daughters, var.name = "dems", which="both", formula = (hasgirls ~ dems + repubs + christian + age + srvlng + demvote))
+pl3<-bal.plot(x=m.out2, data=daughters, var.name = "repubs", which="both", formula = (hasgirls ~ dems + repubs + christian + age + srvlng + demvote))
+pl4<-bal.plot(x=m.out2, data=daughters, var.name = "christian", which="both", formula = (hasgirls ~ dems + repubs + christian + age + srvlng + demvote))
+pl5<-bal.plot(x=m.out2, data=daughters, var.name = "srvlng", which="both", formula = (hasgirls ~ dems + repubs + christian + age + srvlng + demvote))
+pl6<-bal.plot(x=m.out2, data=daughters, var.name = "demvote", which="both", formula = (hasgirls ~ dems + repubs + christian + age + srvlng + demvote))
+
+grid.arrange(pl1, pl2, pl3, pl4, pl5, pl6, ncol=2)
 ```
 
 
@@ -599,6 +614,7 @@ Use the BRFSS data set from the previous question. Now, identify the critical va
 library(rbounds)
 
 psens(m.out1, Gamma=4, GammaInc=.1)$bounds[c(20:40), ]
+
 ```
 
 
